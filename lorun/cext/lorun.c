@@ -34,7 +34,7 @@ int initRun(struct Runobj *runobj, PyObject *args)
         "runner": ,                       #运行用户
         "trace": True/False,              #是否开启跟踪模式
         "calls": range(0, 400),           #列表形式， 可以调用的名单
-        "files": {"/etc/ld.so.cache": 1}, #
+        "files": {"/etc/ld.so.cache": 1}, 
     }
     */
     PyObject *config, *args_obj, *trace_obj, *time_obj, *memory_obj;
