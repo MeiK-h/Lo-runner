@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <string.h>
 
+/* 检查调用的库文件是否被允许 */
 int fileAccess(PyObject *files, const char *file, long flags) {
     PyObject *perm_obj;
     long perm;
@@ -42,14 +43,16 @@ int fileAccess(PyObject *files, const char *file, long flags) {
 }
 
 static long file_temp[100];
+/* 检查系统调用是否被允许 */
 int checkAccess(struct Runobj *runobj, int pid, struct user_regs_struct *regs) {
+    /* 检查系统调用号 */
     if (!runobj->inttable[REG_SYS_CALL(regs)])
         return ACCESS_CALL_ERR;
 
     switch (REG_SYS_CALL(regs)) {
         case SYS_open: {
             int i, j;
-
+            /* 复制ptrace的数据到file_temp */
             for (i = 0; i < 100; i++) {
                 const char* test;
                 long t = ptrace(PTRACE_PEEKDATA, pid,
@@ -63,7 +66,7 @@ int checkAccess(struct Runobj *runobj, int pid, struct user_regs_struct *regs) {
                 }
             }
             l_cont: file_temp[99] = 0;
-
+            /* 检查调用文件 */
             if (fileAccess(runobj->files, (const char*)file_temp,
                     REG_ARG_2(regs))) {
                 return ACCESS_OK;

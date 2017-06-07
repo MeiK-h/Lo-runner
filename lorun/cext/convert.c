@@ -18,6 +18,7 @@
 
 #include "convert.h"
 
+/* 解析允许的calls列表 */
 int initCalls(PyObject *li, u_char calls[]) {
     PyObject *t;
     Py_ssize_t len, i;
@@ -27,7 +28,9 @@ int initCalls(PyObject *li, u_char calls[]) {
     len = PyList_Size(li);
     for (i = 0; i < len; i++) {
         t = PyList_GetItem(li, i);
-        if (t == NULL) {return -1;}
+        if (t == NULL) {
+            return -1;
+        }
 
         #ifdef IS_PY3
         if (!PyLong_Check(t))
