@@ -83,7 +83,7 @@ int setResLimit(struct Runobj *runobj) {
     */
     struct itimerval p_realt;
     /* 设置实际运行时间限制，可以防止sleep等方式卡评测 */
-    p_realt.it_interval.tv_sec = runobj->time_limit / 1000 + 3;
+    p_realt.it_interval.tv_sec = runobj->time_limit / 1000 + 2;
     p_realt.it_interval.tv_usec = 0;
     p_realt.it_value = p_realt.it_interval;
     if (setitimer(ITIMER_REAL, &p_realt, (struct itimerval *) 0) == -1)

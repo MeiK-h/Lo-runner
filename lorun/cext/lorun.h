@@ -25,7 +25,7 @@
 #define MAX_OUTPUT 100000000
 
 enum JUDGE_RESULT {
-    AC=0,   //0 Accepted
+    AC = 0, //0 Accepted
     PE,	    //1 Presentation Error
     TLE,	//2 Time Limit Exceeded
     MLE,	//3 Memory Limit Exceeded

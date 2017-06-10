@@ -17,15 +17,27 @@ RESULT_STR = [
 ]
 
 def compileSrc(src_path):
+    '''
     if os.system('gcc %s -o m'%src_path) != 0:
         print('compile failure!')
+        return False
+    return True
+    '''
+    runcfg = {
+        'args': ['gcc', src_path, '-o', 'm'],
+        'timelimit': 1000, #in MS
+        'memorylimit': 20000, #in KB
+    }
+    errbuffer = lorun.compile(runcfg)
+    if errbuffer:
+        print errbuffer
         return False
     return True
 
 def runone(p_path, in_path, out_path):
     fin = open(in_path)
     ftemp = open('temp.out', 'w')
-    
+
     runcfg = {
         'args':['./m'],
         'fd_in':fin.fileno(),
@@ -33,11 +45,11 @@ def runone(p_path, in_path, out_path):
         'timelimit':1000, #in MS
         'memorylimit':20000, #in KB
     }
-    
+
     rst = lorun.run(runcfg)
     fin.close()
     ftemp.close()
-    
+
     if rst['result'] == 0:
         ftemp = open('temp.out')
         fout = open(out_path)
@@ -47,7 +59,7 @@ def runone(p_path, in_path, out_path):
         os.remove('temp.out')
         if crst != 0:
             return {'result':crst}
-    
+
     return rst
 
 def judge(src_path, td_path, td_total):
@@ -59,9 +71,9 @@ def judge(src_path, td_path, td_total):
         if os.path.isfile(in_path) and os.path.isfile(out_path):
             rst = runone('./m', in_path, out_path)
             rst['result'] = RESULT_STR[rst['result']]
-            print(rst)
+            print rst
         else:
-            print('testdata:%d incompleted' % i)
+            print 'testdata:%d incompleted' % i
             os.remove('./m')
             exit(-1)
     os.remove('./m')
@@ -69,6 +81,6 @@ def judge(src_path, td_path, td_total):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) != 4:
-        print('Usage:%s srcfile testdata_pth testdata_total')
+        print 'Usage:%s srcfile testdata_pth testdata_total'
         exit(-1)
     judge(sys.argv[1], sys.argv[2], int(sys.argv[3]))

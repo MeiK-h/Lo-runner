@@ -18,25 +18,13 @@
 
 #include "lorun.h"
 #include "convert.h"
+#include "compile.h"
 #include "run.h"
 #include "diff.h"
 
 /* 将Python传递的参数解析 */
 int initRun(struct Runobj *runobj, PyObject *args)
 {
-    /*
-    {
-        "args": ["./m"],                  #运行程序命令
-        "fd_in": fin.fileno(),            #输入文件描述符
-        "fd_out": fout.fileno(),          #输出文件描述符
-        "timelimit": 1000,                #时间限制(毫秒)
-        "memorylimit": 20000,             #内存限制(KB)
-        "runner": ,                       #运行用户
-        "trace": True/False,              #是否开启跟踪模式
-        "calls": range(0, 400),           #列表形式， 可以调用的名单
-        "files": {"/etc/ld.so.cache": 1}, 
-    }
-    */
     PyObject *config, *args_obj, *trace_obj, *time_obj, *memory_obj;
     PyObject *calls_obj, *runner_obj, *fd_obj;
 
@@ -102,8 +90,22 @@ int initRun(struct Runobj *runobj, PyObject *args)
     return 0;
 }
 
+/* 执行一次程序，返回资源占用字典或者RuntimeError */
 PyObject *run(PyObject *self, PyObject *args)
 {
+    /*
+    {
+        "args": ["./m"],                  #运行程序命令
+        "fd_in": fin.fileno(),            #输入文件描述符
+        "fd_out": fout.fileno(),          #输出文件描述符
+        "timelimit": 1000,                #时间限制(毫秒)
+        "memorylimit": 20000,             #内存限制(KB)
+        "runner": ,                       #运行用户
+        "trace": True/False,              #是否开启跟踪模式
+        "calls": range(0, 400),           #列表形式， 可以调用的名单
+        "files": {"/etc/ld.so.cache": 1}, #允许调用的文件字典
+    }
+    */
     struct Runobj runobj = {0};
     struct Result rst = {0};
     rst.re_call = -1;
@@ -135,6 +137,40 @@ PyObject* check(PyObject *self, PyObject *args)
     return Py_BuildValue("i", rst);
 }
 
+/* 执行编译，返回NULL代表编译正常，否则返回错误信息字符串 */
+PyObject* compile(PyObject *self, PyObject *args)
+{
+    /*
+    {
+        "args": ["g++", "/home/meik/test/main.cpp"],   #编译命令
+        "timelimit": 5000,                             #时间限制(毫秒)
+        "memorylimit": 20000,                          #内存限制(KB)
+        "runner": ,                                    #编译用户
+    }
+    */
+    struct Runobj comobj = {0};
+    if (initRun(&comobj, args)) {
+        if (comobj.args)
+            free((void*)comobj.args);
+        return (PyObject *)PyString_FromString("init failure");
+    }
+
+    char * errbuffer;
+    /* 执行编译，编译成功返回空 */
+    if ((errbuffer = compileit(&comobj)) == NULL)
+        return (PyObject *)PyString_FromString("");
+
+    if (comobj.args)
+        free((void*)comobj.args);
+    PyObject * err = NULL;
+    if (errbuffer) {
+        err = PyString_FromString(errbuffer);
+        free((void*)errbuffer);
+    }
+
+    return err;
+}
+
 #define run_description "run(argv_dict):\n"\
     "\targv_dict contains:\n"\
     "\t@args : cmd to run\n"\
@@ -149,6 +185,7 @@ PyObject* check(PyObject *self, PyObject *args)
 static PyMethodDef lorun_methods[] = {
 	{"run", run, METH_VARARGS, run_description},
 	{"check", check, METH_VARARGS, check_description},
+    {"compile", compile, METH_VARARGS, "compile"},
 	{NULL, NULL, 0, NULL}
 };
 
