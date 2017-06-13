@@ -60,7 +60,7 @@ char * compileit(struct Runobj *comobj)
             RAISE_EXITC("wait4 failure")
 
         /* 判断是否发生异常 */
-        if (WIFSIGNALED(status)) {
+        if (status || WIFSIGNALED(status)) {
             switch (WTERMSIG(status)) {
                 /* 若编译期间占用资源超出限制 */
                 case SIGSEGV:
