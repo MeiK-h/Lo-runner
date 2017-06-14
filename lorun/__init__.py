@@ -1,1 +1,1 @@
-from ._lorun_ext import run, check, compile
+from ._lorun_ext import run, check, compile, special

@@ -21,6 +21,7 @@
 #include "compile.h"
 #include "run.h"
 #include "diff.h"
+#include "special.h"
 
 /* 将Python传递的参数解析 */
 int initRun(struct Runobj *runobj, PyObject *args)
@@ -171,6 +172,40 @@ PyObject* compile(PyObject *self, PyObject *args)
     return err;
 }
 
+/* 执行spj，返回NULL代表通过测试，否则返回spj的输出 */
+PyObject* special(PyObject *self, PyObject *args)
+{
+    /*
+    {
+        "args": ["/home/meik/test/spj"],   #执行spj命令
+        "timelimit": 5000,                 #时间限制(毫秒)
+        "memorylimit": 20000,              #内存限制(KB)
+        "runner": ,                        #spj用户
+    }
+    */
+    struct Runobj spjobj = {0};
+    if (initRun(&spjobj, args)) {
+        if (spjobj.args)
+            free((void*)spjobj.args);
+        return (PyObject *)PyString_FromString("init failure");
+    }
+
+    char * outbuffer;
+    /* 执行spj，通过测试返回空 */
+    if ((outbuffer = special_judge(&spjobj)) == NULL)
+        return (PyObject *)PyString_FromString("");
+
+    if (spjobj.args)
+        free((void*)spjobj.args);
+    PyObject * out = NULL;
+    if (outbuffer) {
+        out = PyString_FromString(outbuffer);
+        free((void*)outbuffer);
+    }
+
+    return out;
+}
+
 #define run_description "run(argv_dict):\n"\
     "\targv_dict contains:\n"\
     "\t@args : cmd to run\n"\
@@ -186,6 +221,7 @@ static PyMethodDef lorun_methods[] = {
 	{"run", run, METH_VARARGS, run_description},
 	{"check", check, METH_VARARGS, check_description},
     {"compile", compile, METH_VARARGS, "compile"},
+    {"special", special, METH_VARARGS, "special"},
 	{NULL, NULL, 0, NULL}
 };
 
