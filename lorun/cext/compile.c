@@ -74,9 +74,12 @@ char * compileit(struct Runobj *comobj)
                     errbuffer[r] = '\0';
                     break;
             }
+            close(fd_err[0]);
             return errbuffer;
         }
-        else
+        else {
+            close(fd_err[0]);
             return NULL;
+        }
     }
 }
