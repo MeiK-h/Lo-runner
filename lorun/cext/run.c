@@ -141,8 +141,8 @@ int waitExit(struct Runobj *runobj, struct Result *rst, pid_t pid) {
                      + ru.ru_utime.tv_usec / 1000
                      + ru.ru_stime.tv_sec * 1000
                      + ru.ru_stime.tv_usec / 1000;
-    rst->memory_used = ru.ru_maxrss;
-
+    //rst->memory_used = ru.ru_maxrss;
+    rst->memory_used = ru.ru_minflt * (sysconf(_SC_PAGESIZE) / 1024);
     /* 判断是否为异常退出 */
     if (WIFSIGNALED(status)) {
         /* 获得退出原因 */
